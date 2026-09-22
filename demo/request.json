@@ -1,0 +1,6 @@
+{
+  "conversation_id": "demo-001",
+  "message_id": "demo-001-msg-001",
+  "message": "I want to book a consultation. My name is Alex.",
+  "customer": {"name": null, "contact": null}
+}

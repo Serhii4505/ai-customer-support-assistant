@@ -1,0 +1,228 @@
+{
+  "name": "AI Customer Support Assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "customer-support",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "5b85a753-6e9d-451b-b429-c0a680ef5fa3",
+      "name": "Webhook",
+      "webhookId": "d919926b-fa0c-4a2f-8cb3-13820e537268"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/chat",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message",
+              "value": "={{ $json.body.message }}"
+            },
+            {
+              "name": "name",
+              "value": "={{ $json.body.name ?? null }}"
+            },
+            {
+              "name": "contact",
+              "value": "={{ $json.body.contact ?? null }}"
+            },
+            {
+              "name": "conversation_id",
+              "value": "={{ $json.body.conversation_id ?? null }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "421f61e3-9094-4f52-bc72-864382227436",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c51e9593-a36d-45c6-996c-e95a133fe7a2",
+              "leftValue": "={{ $json.handoff_required }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        32,
+        224
+      ],
+      "id": "f574d466-4ac8-4de9-b6d8-ea12fc36631a",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        256,
+        320
+      ],
+      "id": "dd39d63f-0f57-43a8-92fe-644000d0e256",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e7b72fdc-9968-4172-abd3-0c59cf8c7020",
+              "leftValue": "={{$json.lead_score}}",
+              "rightValue": "hot",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        352,
+        192
+      ],
+      "id": "717bd830-8fe2-44be-99e0-cafb9d2dad03",
+      "name": "Hot Lead?"
+    },
+    {
+      "parameters": {
+        "sendTo": "portfolio-recipient@example.com",
+        "subject": "Hot lead from AI Customer Support Assistant",
+        "message": "=<h2>🔥 Hot lead</h2>\n\n<p><strong>Name:</strong> {{$json.name}}</p>\n<p><strong>Contact:</strong> {{$json.contact}}</p>\n<p><strong>Request:</strong> {{$json.original_request}}</p>\n<p><strong>Lead score:</strong> {{$json.lead_score}}</p>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        16
+      ],
+      "id": "dbf54792-56b1-4165-bc7b-3db87e7f1776",
+      "name": "Send a message",
+      "webhookId": "88c22a6b-81b3-422f-9616-283049f9acf6"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Hot Lead?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hot Lead?": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "11462ded-c49e-4896-99a5-ff156e583ff1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f86295c0162df4fc621efdab6a062c30328c6b3dc2513a8e7dfdd721e88ae879"
+  },
+  "nodeGroups": [],
+  "id": "XZNdBoomG53bSBfg",
+  "tags": []
+}
